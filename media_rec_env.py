@@ -261,7 +261,7 @@ class MediaRecommendationEnv(gym.Env):
             # Calculating positioning of the box representing the recommendation
             window_midline = window_dimensions[0] / 2
             x_pos = window_midline + rec_update[0] * rec_box_x_separation
-            y_pos = window_dimensions[1] - rec_box_y_separation * len(self.recommendation_and_click_difference)
+            y_pos = window_dimensions[1] - rec_box_y_separation * (len(self.recommendation_and_click_difference) + 1)
 
             # Adding the box to the visualisation
             rec = rendering.FilledPolygon([(x_pos, y_pos),
