@@ -28,9 +28,7 @@ class MediaRecommendationEnv(gym.Env):
         self.rec_history = []
         self.click_history = []
         self.viz = None
-
-
-
+        self.viz_theta_heights = [0.0, 0.0, 0.0]
 
     def step(self, action):
         l_recs, l_clicks, c_recs, c_clicks, r_recs, r_clicks = self.state
@@ -115,37 +113,70 @@ class MediaRecommendationEnv(gym.Env):
             theta_bar_background.set_color(0.5, 0.5, 0.5)
             self.viz.add_geom(theta_bar_background)
 
-        if self.state is None:
-            return None
+            for theta_index in range(3):
+                theta_element = self.theta[theta_index]
+                bar_anchor_x = theta_box_anchor + theta_index * 110
+                bar_anchor_y = theta_box_anchor
+                bar_width = 100
+                bar_height = theta_element * theta_box_height
+                self.viz_theta_heights[theta_index] = bar_height + bar_anchor_y
 
-        rec_update = self.recommendation_and_click_difference[-1]
-        x_pos = (window_dimensions[0] / 2) + rec_update[0] * 125
-        y_pos = 20 + 18 * len(self.recommendation_and_click_difference)
-        rec = rendering.FilledPolygon([(x_pos, y_pos),
-                                       (x_pos, y_pos + rec_box_height),
-                                       (x_pos + rec_box_width, y_pos + rec_box_height),
-                                       (x_pos + rec_box_width, y_pos)])
+                theta_bar = rendering.FilledPolygon([(bar_anchor_x, bar_anchor_y),
+                                                     (bar_anchor_x, bar_anchor_y + bar_height),
+                                                     (bar_anchor_x + bar_width, bar_anchor_y + bar_height),
+                                                     (bar_anchor_x + bar_width, bar_anchor_y)])
 
-        colour = [0.0, 0.0, 0.0]
-        colour[rec_update[0]] += 1.0
-        if rec_update[1] == 0:
-            colour[rec_update[0]] /= 4
+                theta_bar_color = [0.0, 0.0, 0.0]
+                theta_bar_color[theta_index] = 0.8
+                theta_bar.set_color(theta_bar_color[0], theta_bar_color[1], theta_bar_color[2])
 
-        rec.set_color(colour[0], colour[1], colour[2])
-        self.viz.add_geom(rec)
+                self.viz.add_geom(theta_bar)
 
-        for theta_index in range(3):
-            theta_element = self.theta[theta_index]
-            bar_anchor_x = theta_box_anchor + theta_index * 105
-            bar_anchor_y = theta_box_anchor
-            bar_width = 100
-            bar_height = theta_element * theta_box_height
 
-            theta_bar = rendering.FilledPolygon([(bar_anchor_x, bar_anchor_y),
-                                                 (bar_anchor_x, bar_anchor_y + bar_height),
-                                                 (bar_anchor_x + bar_width, bar_anchor_y + bar_height),
-                                                 (bar_anchor_x + bar_width, bar_anchor_y)])
-            self.viz.add_geom(theta_bar)
+
+        else:
+            if self.state is None:
+                return None
+
+            rec_update = self.recommendation_and_click_difference[-1]
+            x_pos = (window_dimensions[0] / 2) + rec_update[0] * 125
+            y_pos = 20 + 18 * len(self.recommendation_and_click_difference)
+            rec = rendering.FilledPolygon([(x_pos, y_pos),
+                                           (x_pos, y_pos + rec_box_height),
+                                           (x_pos + rec_box_width, y_pos + rec_box_height),
+                                           (x_pos + rec_box_width, y_pos)])
+
+
+            rec_colour = None
+            if rec_update[1] == 0:
+                rec_colour = [0.6, 0.6, 0.6]
+                rec_colour[rec_update[0]] = 1.0
+            else:
+                rec_colour = [0.0, 0.0, 0.0]
+                rec_colour[rec_update[0]] = 0.8
+
+            rec.set_color(rec_colour[0], rec_colour[1], rec_colour[2])
+            self.viz.add_geom(rec)
+
+            for theta_index in range(3):
+                theta_element = self.theta[theta_index]
+                bar_anchor_x = theta_box_anchor + theta_index * 110
+                bar_anchor_y = self.viz_theta_heights[theta_index]
+                bar_width = 100
+                bar_height = (theta_element * theta_box_height + 40) - bar_anchor_y
+
+                theta_bar = rendering.FilledPolygon([(bar_anchor_x, bar_anchor_y),
+                                                     (bar_anchor_x, bar_anchor_y + bar_height),
+                                                     (bar_anchor_x + bar_width, bar_anchor_y + bar_height),
+                                                     (bar_anchor_x + bar_width, bar_anchor_y)])
+
+                theta_bar_color = [0.0, 0.0, 0.0]
+                theta_bar_color[theta_index] = 0.6
+                theta_bar.set_color(theta_bar_color[0], theta_bar_color[1], theta_bar_color[2])
+
+                self.viz_theta_heights[theta_index] = bar_anchor_y + bar_height
+
+                self.viz.add_geom(theta_bar)
 
 
         if mode == 'rgb_array':
