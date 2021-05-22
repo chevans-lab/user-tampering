@@ -176,17 +176,47 @@ class MediaRecommendationEnv(gym.Env):
         return self.state
 
     def render(self, mode='human'):
-        window_dimensions = (800, 600)
-        rec_box_width = 100
-        rec_box_height = 15
+        """
+        Creates a visualisation of the recommendation process.
 
+        On the right, the agent's recommendations and user's clicks are visualised.
+        At each timestep, a box will appear representing a recommendations -- these form a sequence down the
+        right hand side of the window. These are organised into columns and colours:
+        -- Recommendations from L are a red square in the left column
+        -- Recommendations from C are a green square in the centre column
+        -- Recommendations from R are a blue square in the right column
+
+        * A pale-coloured square indicates that the user did NOT click; a bold-coloured square indicates that they did *
+
+        On the left, the value of theta is dynamically shown with a bar graph.
+        We show the initial value of each element of theta for the current user in bold colours
+        (same source -> colour mapping as above),
+        and increase the theta elements' values in darker colours when the agent affects the values with its recommendations.
+
+        Returns:
+            Visual rendering of the problem.
+        """
+
+        window_dimensions = (800, 600)
+
+        # Basic dimensions/coordinates for the visualisations
+        rec_box_width = 100
+        rec_box_x_separation = 125
+        rec_box_height = 15
+        rec_box_y_separation = 18
         theta_box_anchor = 40
         theta_box_width = 320
         theta_box_height = 540
+        theta_bar_width = 100
+        theta_bar_x_separation = 110
 
+        # Setting up the visualisation at beginning of the episode:
         if self.viz is None:
+            # Create a window for visualisation
             self.viz = rendering.Viewer(window_dimensions[0],
                                         window_dimensions[1])
+
+            # Add the scale backdrop for the theta visualisation
             theta_bar_background = rendering.FilledPolygon([(theta_box_anchor, theta_box_anchor),
                                                             (theta_box_anchor, theta_box_height + theta_box_anchor),
                                                             (theta_box_width + theta_box_anchor, theta_box_height + theta_box_anchor),
@@ -194,41 +224,46 @@ class MediaRecommendationEnv(gym.Env):
             theta_bar_background.set_color(0.5, 0.5, 0.5)
             self.viz.add_geom(theta_bar_background)
 
+            # Visualising the pre-episode values of theta
             for theta_index in range(3):
                 theta_element = self.theta[theta_index]
-                bar_anchor_x = theta_box_anchor + theta_index * 110
+
+                # Calculating positioning and dimensions
+                bar_anchor_x = theta_box_anchor + theta_index * theta_bar_x_separation
                 bar_anchor_y = theta_box_anchor
-                bar_width = 100
                 bar_height = theta_element * theta_box_height
+
+                # Storing the height of the initial bar, for use in incrementing the bar's height later
                 self.viz_theta_heights[theta_index] = bar_height + bar_anchor_y
 
+                # Generating the bar
                 theta_bar = rendering.FilledPolygon([(bar_anchor_x, bar_anchor_y),
                                                      (bar_anchor_x, bar_anchor_y + bar_height),
-                                                     (bar_anchor_x + bar_width, bar_anchor_y + bar_height),
-                                                     (bar_anchor_x + bar_width, bar_anchor_y)])
-
+                                                     (bar_anchor_x + theta_bar_width, bar_anchor_y + bar_height),
+                                                     (bar_anchor_x + theta_bar_width, bar_anchor_y)])
                 theta_bar_color = [0.0, 0.0, 0.0]
                 theta_bar_color[theta_index] = 0.8
                 theta_bar.set_color(theta_bar_color[0], theta_bar_color[1], theta_bar_color[2])
 
                 self.viz.add_geom(theta_bar)
 
-
-
+        # Updating the visualisation mid-episode
         else:
-            if self.state is None:
-                return None
-
+            # Retrieving the (action, reward) outcome of the most recent timestep
             rec_update = self.recommendation_and_click_difference[-1]
-            x_pos = (window_dimensions[0] / 2) + rec_update[0] * 125
-            #y_pos = 20 + 18 * len(self.recommendation_and_click_difference)
-            y_pos = 580 - 18 * len(self.recommendation_and_click_difference)
+
+            # Calculating positioning of the box representing the recommendation
+            window_midline = window_dimensions[0] / 2
+            x_pos = window_midline + rec_update[0] * rec_box_x_separation
+            y_pos = window_dimensions[1] - rec_box_y_separation * len(self.recommendation_and_click_difference)
+
+            # Adding the box to the visualisation
             rec = rendering.FilledPolygon([(x_pos, y_pos),
                                            (x_pos, y_pos + rec_box_height),
                                            (x_pos + rec_box_width, y_pos + rec_box_height),
                                            (x_pos + rec_box_width, y_pos)])
 
-
+            # Using pale colour if the reward was 0 (no click), and bold colour if reward was 1 (click)
             rec_colour = None
             if rec_update[1] == 0:
                 rec_colour = [0.6, 0.6, 0.6]
@@ -236,29 +271,39 @@ class MediaRecommendationEnv(gym.Env):
             else:
                 rec_colour = [0.0, 0.0, 0.0]
                 rec_colour[rec_update[0]] = 0.8
-
             rec.set_color(rec_colour[0], rec_colour[1], rec_colour[2])
+
             self.viz.add_geom(rec)
+
+            # Adding updates to the theta visualisation where necessary
 
             for theta_index in range(3):
                 theta_element = self.theta[theta_index]
+
+                # Calculating positioning and height of the incremental addition
                 bar_anchor_x = theta_box_anchor + theta_index * 110
                 bar_anchor_y = self.viz_theta_heights[theta_index]
                 bar_width = 100
                 bar_height = (theta_element * theta_box_height + 40) - bar_anchor_y
 
-                theta_bar = rendering.FilledPolygon([(bar_anchor_x, bar_anchor_y),
-                                                     (bar_anchor_x, bar_anchor_y + bar_height),
-                                                     (bar_anchor_x + bar_width, bar_anchor_y + bar_height),
-                                                     (bar_anchor_x + bar_width, bar_anchor_y)])
+                # If the increment is needed:
 
-                theta_bar_color = [0.0, 0.0, 0.0]
-                theta_bar_color[theta_index] = 0.6
-                theta_bar.set_color(theta_bar_color[0], theta_bar_color[1], theta_bar_color[2])
+                # Adding an additional bar on top of the existing bar, in a darker colour shade to signify the change
+                if bar_height != 0:
+                    theta_bar = rendering.FilledPolygon([(bar_anchor_x, bar_anchor_y),
+                                                         (bar_anchor_x, bar_anchor_y + bar_height),
+                                                         (bar_anchor_x + bar_width, bar_anchor_y + bar_height),
+                                                         (bar_anchor_x + bar_width, bar_anchor_y)])
 
-                self.viz_theta_heights[theta_index] = bar_anchor_y + bar_height
+                    theta_bar_color = [0.0, 0.0, 0.0]
+                    theta_bar_color[theta_index] = 0.6
+                    theta_bar.set_color(theta_bar_color[0], theta_bar_color[1], theta_bar_color[2])
+                    self.viz.add_geom(theta_bar)
 
-                self.viz.add_geom(theta_bar)
+                    # Updating the current height of the bar
+                    self.viz_theta_heights[theta_index] = bar_anchor_y + bar_height
+
+
 
 
         if mode == 'rgb_array':
