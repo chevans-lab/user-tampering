@@ -12,6 +12,7 @@ Email: u6942700@anu.edu.au
 This is my own work, and forms part of my artefact contribution for COMP3770, Semester 1, 2021.
 """
 
+
 class QLearning:
     """
     A Q-learning implementation for learning a recommendation policy in the Media Recommendation Environment.
@@ -189,28 +190,42 @@ class QLearning:
             print(f"Generated {accumulated_reward} clicks in trial.")
 
 def main():
+    """
+    Reads in command line arguments for Q-table loading/saving,
+    Generates a Q-learning agent, and either loads or learns a policy as necessary.
+
+    Also gives a demonstration of the agent's policy on a random selection of simulated users.
+    """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input", dest="input_q_file", metavar="INPUT",
+    parser.add_argument("-l", "--load", dest="input_q_file", metavar="INPUT",
                         help="If given, load a pre-trained Q-table from this file")
-    parser.add_argument("-o", "--output", dest="output_q_file", metavar="OUTPUT",
+    parser.add_argument("-s", "--save_to", dest="output_q_file", metavar="OUTPUT",
                         help="If given, save the trained Q-table to this file")
 
     args = parser.parse_args()
-    i = args.input_q_file
-    o = args.output_q_file
-    q_learning = QLearning(i, o)
-    if i:
-        print(f"Loading pre-trained Q-table from {i} ...")
+    input_q_file = args.input_q_file
+    output_q_file = args.output_q_file
+
+    # Generating Q-learning agent instance
+    q_learning = QLearning(input_q_file, output_q_file)
+
+    # If a file was given for loading, getting the Q-table from there
+    if input_q_file:
+        print(f"Loading pre-trained Q-table from {input_q_file} ...")
         q_learning.load_q_table()
         print("Loaded.")
+    # Else, the agent begins training
     else:
         print("Commencing training...")
         q_learning.train(episodes=50000000)
-        if o:
-            print(f"Saving trained Q-table to {o} ...")
-            q_learning.save_q_table()
-            print("Saved.")
 
+    # Saving the Q-table to given location, if one was given
+    if output_q_file:
+        print(f"Saving trained Q-table to {output_q_file} ...")
+        q_learning.save_q_table()
+        print("Saved.")
+
+    # Running demonstration of policy
     q_learning.execute_policy(10)
 
 if __name__ == "__main__":
