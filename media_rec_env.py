@@ -6,6 +6,12 @@ from user import MediaUser
 import random
 from gym.envs.classic_control import rendering
 
+"""
+Author: Charles Evans
+Email: u6942700@anu.edu.au
+
+This is my own work, and forms part of my artefact contribution for COMP3770, Semester 1, 2021.
+"""
 
 class MediaRecommendationEnv(gym.Env):
     """
@@ -302,9 +308,6 @@ class MediaRecommendationEnv(gym.Env):
 
                     # Updating the current height of the bar
                     self.viz_theta_heights[theta_index] = bar_anchor_y + bar_height
-
-
-
 
         if mode == 'rgb_array':
             return self.viz.render(return_rgb_array=True)
