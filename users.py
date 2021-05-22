@@ -1,9 +1,16 @@
 import numpy as np
 
+"""
+Author: Charles Evans
+Email: u6942700@anu.edu.au
+
+This is my own work, and forms part of my artefact contribution for COMP3770, Semester 1, 2021.
+"""
+
 
 class Users:
     """
-    Represents a representative collection of media 'users.'
+     A representative collection of simulated media 'users.'
 
     On both 'wings,' we have:
     -- A moderate user, who is unlikely to engage with content from the opposite wing, but
