@@ -221,7 +221,8 @@ class MediaRecommendationEnv(gym.Env):
 
             rec_update = self.recommendation_and_click_difference[-1]
             x_pos = (window_dimensions[0] / 2) + rec_update[0] * 125
-            y_pos = 20 + 18 * len(self.recommendation_and_click_difference)
+            #y_pos = 20 + 18 * len(self.recommendation_and_click_difference)
+            y_pos = 580 - 18 * len(self.recommendation_and_click_difference)
             rec = rendering.FilledPolygon([(x_pos, y_pos),
                                            (x_pos, y_pos + rec_box_height),
                                            (x_pos + rec_box_width, y_pos + rec_box_height),
