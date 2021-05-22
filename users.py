@@ -20,7 +20,6 @@ class Users:
     We also have:
     -- A centrist user (likely to click on centrist content,
         but not particularly likely to engage otherwise.
-    -- An unengaged user (equally not particularly likely to click on any content)
     """
 
     def __init__(self):
@@ -30,7 +29,6 @@ class Users:
         self.users["moderate_left"] = np.array([0.3, 0.25, 0.1])
         self.users["strong_left"] = np.array([0.4, 0.1, 0.1])
         self.users["centrist"] = np.array([0.2, 0.4, 0.2])
-        self.users["unengaged"] = np.array([0.2, 0.2, 0.2])
 
     def get_users(self):
         return self.users

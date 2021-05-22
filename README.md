@@ -28,10 +28,26 @@ If you would like to train the Q-table yourself, instead run the command:
 
 `python3 q_learning.py`
 
-However, be aware that this training process takes approx 4 hours on our machine (16GiB RAM, 2.6 GHz 2019 i7).
+However, be aware that this training process takes approximately 4 hours on our machine (16GiB RAM, 2.6 GHz 2019 i7).
 
-If you would like to train the algorithm and save its Q-table to some existing file in the repo (for subsequent loading with the 
+If you would like to train the algorithm and save its Q-table to some file in the repo (for subsequent loading with the 
 first command above, run):
 
 `python3 q_learning.py --save "<file_name>"`
+
+## Result Visualisation
+
+Post-training/Post-loading, the `q_learning` script will automatically run and visualise 10 demo. runs, with randomly 
+selected user profiles from the population we defined. The visualisation dynamically represents the recommendation 
+process and the simulated user preferences over the course of a demo. episode. We have annotated a screen grab of the 
+visualisation at the end of an episode to aid comprehension:
+
+![Annotated Policy Visualisation](img/annnotated_viz.png)
+
+## 
+
+For more information on the experimental context, please see the associated report.
+
+
+
 
