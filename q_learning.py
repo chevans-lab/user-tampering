@@ -4,6 +4,7 @@ from media_rec_env import MediaRecommendationEnv
 import pickle
 import random
 import time
+import matplotlib.pyplot as plt
 
 """
 Author: Charles Evans
@@ -142,7 +143,7 @@ class QLearning:
 
         return max_action
 
-    def execute_policy(self, trials, horizon=30):
+    def execute_demonstration(self, trials, horizon=30):
         """
         Gives a visual demonstration of the policy learned by the agent.
         Undertakes the given number of 'trial' episodes, using a greedy policy.
@@ -189,22 +190,76 @@ class QLearning:
 
             print(f"Generated {accumulated_reward} clicks in trial.")
 
+    def execute_evaluation(self, runs_per_user, horizon=30):
+        env = MediaRecommendationEnv(horizon)
+        for user in env.user_list:
+            print(user.get_theta())
+            recs_per_timestep = np.zeros((3, horizon))
+            cumulative_reward_per_timestep = np.zeros(horizon + 1)
+
+            for run in range(runs_per_user):
+                s = env.reset_with_user_profile(user)
+                t = 0
+                cumulative_reward = 0
+                done = False
+                while not done:
+                    # Selecting an action
+                    a = self.greedy_action(s)
+                    recs_per_timestep[a, t] += 1
+
+                    # Simulating the chosen action
+                    s, r, done, step_info = env.step(a)
+
+                    cumulative_reward += r
+                    t += 1
+
+                    cumulative_reward_per_timestep[t] += cumulative_reward
+
+            recs_per_timestep /= runs_per_user
+            cumulative_reward_per_timestep /= runs_per_user
+
+            fig = plt.figure(figsize=(10, 10))
+
+            bar = fig.add_subplot(121)
+            bar.set_xlabel("timestep")
+            bar.set_ylabel("proportion of recommendation from source")
+            bar.set_title("Policy for user with initial preferences")
+
+            plt.bar(range(30), recs_per_timestep[0, :], color='red')
+            plt.bar(range(30), recs_per_timestep[1, :], bottom=recs_per_timestep[0, :], color='green')
+            plt.bar(range(30), recs_per_timestep[2, :], bottom=(recs_per_timestep[0, :] + recs_per_timestep[1, :]), color='blue')
+
+            line = fig.add_subplot(122)
+            line.set_xlabel("timestep")
+            bar.set_title("Cumulative reward of Policy for user with initial preferences")
+
+            plt.plot(range(31), cumulative_reward_per_timestep)
+
+            plt.show()
+
+
 def main():
     """
     Reads in command line arguments for Q-table loading/saving,
     Generates a Q-learning agent, and either loads or learns a policy as necessary.
 
-    Also gives a demonstration of the agent's policy on a random selection of simulated users.
+    Also either gives a visual demonstration of the agent's policy on a random selection of 10 simulated users (default)
+    or conducts a more full-scale evaluation of the learned policy and plots the results.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--load", dest="input_q_file", metavar="INPUT",
-                        help="If given, load a pre-trained Q-table from this file")
+                        help="If given, loads a pre-trained Q-table from this file")
     parser.add_argument("-s", "--save_to", dest="output_q_file", metavar="OUTPUT",
-                        help="If given, save the trained Q-table to this file")
+                        help="If given, saves the trained Q-table to this file")
+    parser.add_argument("-v", "--visualisation_type", dest="visualisation_type", metavar="VIS",
+                        help="Determines the kind of visual output. " +
+                             "'demo' for an animated demonstration of the policy on 10 random users, " +
+                             "'eval' for plots evaluating the strategy and performance")
 
     args = parser.parse_args()
     input_q_file = args.input_q_file
     output_q_file = args.output_q_file
+    vis_type = args.visualisation_type
 
     # Generating Q-learning agent instance
     q_learning = QLearning(input_q_file, output_q_file)
@@ -225,8 +280,12 @@ def main():
         q_learning.save_q_table()
         print("Saved.")
 
-    # Running demonstration of policy
-    q_learning.execute_policy(10)
+
+    if vis_type is None or vis_type == 'demo':
+        # Running demonstration of policy
+        q_learning.execute_demonstration(10)
+    elif vis_type == 'eval':
+        q_learning.execute_evaluation(10000)
 
 if __name__ == "__main__":
     main()

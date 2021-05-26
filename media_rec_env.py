@@ -181,6 +181,28 @@ class MediaRecommendationEnv(gym.Env):
 
         return self.state
 
+    def reset_with_user_profile(self, user):
+        """
+        Resets the environment prior to commencing a new episode * with a specific user defining the env. dynamics *.
+        Also clears the recommendation and click history.
+
+        Parameters:
+            user: MediaUser
+        Returns:
+            self.state : observation_space
+        """
+
+        # Clearing the accumulative environment variables
+        self.state = (0, 0, 0, 0, 0, 0)
+        self.recommendation_and_click_difference = []
+        self.rec_history = []
+        self.click_history = []
+        self.theta_history = []
+
+        self.theta = user.get_theta()
+
+        return self.state
+
     def render(self, mode='human'):
         """
         Creates a visualisation of the recommendation process.
