@@ -191,18 +191,39 @@ class QLearning:
             print(f"Generated {accumulated_reward} clicks in trial.")
 
     def execute_evaluation(self, runs_per_user, horizon=30):
+        """
+        Conducts an evaluation of the q-learning policy and plots the results.
+
+        For each user in the population, it runs the policy over the specified number of episodes. It then produces:
+        -- A horizontal bar chart showing the relative likelihood of the agent choosing each action at each timestep
+        -- A line chart showing the average accumulated reward up to and including each timestep by following the policy
+            -- This chart also includes line charts corresponding to two other policies for comparison. We have:
+                -- A random policy (chooses one of the actions with equal probability at each timestep)
+                -- A 'baseline' bandit policy (random for the first third of the episode, and
+                 the action with the highest average reward so far thereafter)
+
+        Parameters:
+            runs_per_user: int
+            horizon: int
+        """
+
         env = MediaRecommendationEnv(horizon)
+
         for i in range(len(env.user_list)):
             user = env.user_list[i]
             user_name = env.user_names[i]
 
+            # Instantiating arrays to store data from the evaluation runs
             recs_per_timestep = np.zeros((3, horizon))
-
             random_cumulative_reward = np.zeros(horizon + 1)
             baseline_cumulative_reward = np.zeros(horizon + 1)
             tampering_cumulative_reward = np.zeros(horizon + 1)
 
             for run in range(runs_per_user):
+                # Evaluating the q-learned policy first.
+                # Running `runs_per_user` episodes, following the policy on all of them,
+                # and for each time t, recording both the accumulated reward up to t and the action at t
+
                 s = env.reset_with_user_profile(user)
 
                 t = 0
@@ -210,29 +231,28 @@ class QLearning:
 
                 done = False
                 while not done:
-                    # Selecting an action
                     a = self.greedy_action(s)
-
                     recs_per_timestep[a, t] += 1
 
-                    # Simulating the chosen action
                     s, r, done, step_info = env.step(a)
-
                     cumulative_reward += r
                     t += 1
 
                     tampering_cumulative_reward[t] += cumulative_reward
 
+                # Evaluating the baseline policy next.
                 s = env.reset_with_user_profile(user)
 
                 t = 0
                 cumulative_reward = 0
                 done = False
                 while not done:
-                    # Selecting an action
+                    # Our baseline policy:
                     if t < (horizon / 3):
+                        # Random actions in the first third of the episode to estimate user click probabilities
                         a = random.choice(self.actions)
                     else:
+                        # Expected value maximisation thereafter based on mean reward per action so far
                         exp_value_per_action = [0.5, 0.5, 0.5]
                         if s[0] != 0:
                             exp_value_per_action[0] = float(s[1]) / float(s[0])
@@ -243,57 +263,66 @@ class QLearning:
 
                         a = exp_value_per_action.index(max(exp_value_per_action))
 
-                    # Simulating the chosen action
                     s, r, done, step_info = env.step(a)
-
                     cumulative_reward += r
                     t += 1
 
                     baseline_cumulative_reward[t] += cumulative_reward
 
+                # Finally, evaluating the random policy.
                 s = env.reset_with_user_profile(user)
 
                 t = 0
                 cumulative_reward = 0
                 done = False
                 while not done:
-                    # Selecting an action
                     a = random.choice(self.actions)
 
-                    # Simulating the chosen action
                     s, r, done, step_info = env.step(a)
-
                     cumulative_reward += r
                     t += 1
 
                     random_cumulative_reward[t] += cumulative_reward
 
-            random_cumulative_reward /= runs_per_user
-            baseline_cumulative_reward /= runs_per_user
-            tampering_cumulative_reward /= runs_per_user
 
-            fig = plt.figure(figsize=(20, 10))
+            # LEARNED POLICY PLOT
+
+            fig = plt.figure(figsize=(20, 5))
 
             bar = fig.add_subplot(121)
             bar.set_xlabel("Probability of chosen action")
             bar.set_ylabel("Timestep")
             bar.set_title(f"Learned Strategies for Recommending to a {user_name} User")
 
-            y_values = np.flip(recs_per_timestep / runs_per_user, axis=1)
-            x_values = list(range(horizon))
-            x_ticks = list(range(horizon))
-            x_ticks.reverse()
-            plt.yticks(range(horizon), x_ticks)
+            # Dividing the no. times each action taken at each timestep to get an estimate of the prob. of taking
+            # action a at time t under the learned policy
+            x_values = np.flip(recs_per_timestep / runs_per_user, axis=1)
 
-            plt.barh(x_values, y_values[0, :], color='red', label='Left-wing source')
-            plt.barh(x_values, y_values[1, :], left=y_values[0, :], color='green', label='Centrist source')
-            plt.barh(x_values, y_values[2, :], left=y_values[0, :] + y_values[1, :], color='blue', label='Right-wing source')
+            y_values = list(range(horizon))
+            y_ticks = list(range(horizon))
+            y_ticks.reverse()
+            plt.yticks(range(horizon), y_ticks)
+
+            # Stacking horizontal bar charts to show the proportion of each action taken at each timestep
+            plt.barh(y_values, x_values[0, :], color='red', label='Left-wing source')
+            plt.barh(y_values, x_values[1, :], left=x_values[0, :], color='green', label='Centrist source')
+            plt.barh(y_values, x_values[2, :], left=x_values[0, :] + x_values[1, :], color='blue', label='Right-wing source')
             plt.legend()
+
+            # CUMULATIVE REWARD PLOT
+
+            # Dividing the cumulative reward totals by the number of runs to get an estimate of expected
+            # cumulative reward up to each timestep for one run
+            random_cumulative_reward /= runs_per_user
+            baseline_cumulative_reward /= runs_per_user
+            tampering_cumulative_reward /= runs_per_user
 
             line = fig.add_subplot(122)
             line.set_xlabel("Timestep")
             line.set_ylabel("Average accumulated reward")
             line.set_title(f"Comparison of Policies on a {user_name} User By Cumulative Reward up to each Timestep")
+
+            # Plotting the growth in cumulative reward for each of the three evaluated policies
             plt.plot(range(horizon + 1), tampering_cumulative_reward, color='purple', label='Q-learning policy')
             plt.plot(range(horizon + 1), baseline_cumulative_reward, color='gray', label='Baseline policy')
             plt.plot(range(horizon + 1), random_cumulative_reward, color='orange', label='Random policy')
@@ -349,6 +378,7 @@ def main():
         # Running demonstration of policy
         q_learning.execute_demonstration(10)
     elif vis_type == 'eval':
+        # Running evaluation of policy
         q_learning.execute_evaluation(10000)
 
 if __name__ == "__main__":
