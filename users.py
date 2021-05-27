@@ -24,11 +24,11 @@ class Users:
 
     def __init__(self):
         self.users = {}
-        self.users["moderate_right"] = np.array([0.1, 0.25, 0.3])
-        self.users["strong_right"] = np.array([0.1, 0.1, 0.4])
-        self.users["moderate_left"] = np.array([0.3, 0.25, 0.1])
-        self.users["strong_left"] = np.array([0.4, 0.1, 0.1])
-        self.users["centrist"] = np.array([0.2, 0.4, 0.2])
+        self.users["Moderate Right"] = np.array([0.1, 0.25, 0.3])
+        self.users["Strong Right"] = np.array([0.1, 0.1, 0.4])
+        self.users["Moderate Left"] = np.array([0.3, 0.25, 0.1])
+        self.users["Strong Left"] = np.array([0.4, 0.1, 0.1])
+        self.users["Centrist"] = np.array([0.2, 0.4, 0.2])
 
     def get_users(self):
         return self.users

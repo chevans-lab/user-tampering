@@ -192,19 +192,27 @@ class QLearning:
 
     def execute_evaluation(self, runs_per_user, horizon=30):
         env = MediaRecommendationEnv(horizon)
-        for user in env.user_list:
-            print(user.get_theta())
+        for i in range(len(env.user_list)):
+            user = env.user_list[i]
+            user_name = env.user_names[i]
+
             recs_per_timestep = np.zeros((3, horizon))
-            cumulative_reward_per_timestep = np.zeros(horizon + 1)
+
+            random_cumulative_reward = np.zeros(horizon + 1)
+            baseline_cumulative_reward = np.zeros(horizon + 1)
+            tampering_cumulative_reward = np.zeros(horizon + 1)
 
             for run in range(runs_per_user):
                 s = env.reset_with_user_profile(user)
+
                 t = 0
                 cumulative_reward = 0
+
                 done = False
                 while not done:
                     # Selecting an action
                     a = self.greedy_action(s)
+
                     recs_per_timestep[a, t] += 1
 
                     # Simulating the chosen action
@@ -213,27 +221,83 @@ class QLearning:
                     cumulative_reward += r
                     t += 1
 
-                    cumulative_reward_per_timestep[t] += cumulative_reward
+                    tampering_cumulative_reward[t] += cumulative_reward
 
-            recs_per_timestep /= runs_per_user
-            cumulative_reward_per_timestep /= runs_per_user
+                s = env.reset_with_user_profile(user)
 
-            fig = plt.figure(figsize=(10, 10))
+                t = 0
+                cumulative_reward = 0
+                done = False
+                while not done:
+                    # Selecting an action
+                    if t < (horizon / 3):
+                        a = random.choice(self.actions)
+                    else:
+                        exp_value_per_action = [0.5, 0.5, 0.5]
+                        if s[0] != 0:
+                            exp_value_per_action[0] = float(s[1]) / float(s[0])
+                        if s[2] != 0:
+                            exp_value_per_action[1] = float(s[3]) / float(s[2])
+                        if s[4] != 0:
+                            exp_value_per_action[2] = float(s[5]) / float(s[4])
+
+                        a = exp_value_per_action.index(max(exp_value_per_action))
+
+                    # Simulating the chosen action
+                    s, r, done, step_info = env.step(a)
+
+                    cumulative_reward += r
+                    t += 1
+
+                    baseline_cumulative_reward[t] += cumulative_reward
+
+                s = env.reset_with_user_profile(user)
+
+                t = 0
+                cumulative_reward = 0
+                done = False
+                while not done:
+                    # Selecting an action
+                    a = random.choice(self.actions)
+
+                    # Simulating the chosen action
+                    s, r, done, step_info = env.step(a)
+
+                    cumulative_reward += r
+                    t += 1
+
+                    random_cumulative_reward[t] += cumulative_reward
+
+            random_cumulative_reward /= runs_per_user
+            baseline_cumulative_reward /= runs_per_user
+            tampering_cumulative_reward /= runs_per_user
+
+            fig = plt.figure(figsize=(20, 10))
 
             bar = fig.add_subplot(121)
-            bar.set_xlabel("timestep")
-            bar.set_ylabel("proportion of recommendation from source")
-            bar.set_title("Policy for user with initial preferences")
+            bar.set_xlabel("Probability of chosen action")
+            bar.set_ylabel("Timestep")
+            bar.set_title(f"Learned Strategies for Recommending to a {user_name} User")
 
-            plt.bar(range(30), recs_per_timestep[0, :], color='red')
-            plt.bar(range(30), recs_per_timestep[1, :], bottom=recs_per_timestep[0, :], color='green')
-            plt.bar(range(30), recs_per_timestep[2, :], bottom=(recs_per_timestep[0, :] + recs_per_timestep[1, :]), color='blue')
+            y_values = np.flip(recs_per_timestep / runs_per_user, axis=1)
+            x_values = list(range(horizon))
+            x_ticks = list(range(horizon))
+            x_ticks.reverse()
+            plt.yticks(range(horizon), x_ticks)
+
+            plt.barh(x_values, y_values[0, :], color='red', label='Left-wing source')
+            plt.barh(x_values, y_values[1, :], left=y_values[0, :], color='green', label='Centrist source')
+            plt.barh(x_values, y_values[2, :], left=y_values[0, :] + y_values[1, :], color='blue', label='Right-wing source')
+            plt.legend()
 
             line = fig.add_subplot(122)
-            line.set_xlabel("timestep")
-            bar.set_title("Cumulative reward of Policy for user with initial preferences")
-
-            plt.plot(range(31), cumulative_reward_per_timestep)
+            line.set_xlabel("Timestep")
+            line.set_ylabel("Average accumulated reward")
+            line.set_title(f"Comparison of Policies on a {user_name} User By Cumulative Reward up to each Timestep")
+            plt.plot(range(horizon + 1), tampering_cumulative_reward, color='purple', label='Q-learning policy')
+            plt.plot(range(horizon + 1), baseline_cumulative_reward, color='gray', label='Baseline policy')
+            plt.plot(range(horizon + 1), random_cumulative_reward, color='orange', label='Random policy')
+            plt.legend()
 
             plt.show()
 

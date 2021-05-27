@@ -55,6 +55,7 @@ class MediaRecommendationEnv(gym.Env):
         # See Users class for more info.
         user_dict = Users().get_users()
         self.user_list = [MediaUser(v) for v in user_dict.values()]
+        self.user_names = [k for k in user_dict.keys()]
 
         # Variables for use in result storage and visualisation
         self.theta_history = []
