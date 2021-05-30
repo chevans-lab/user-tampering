@@ -12,32 +12,53 @@ for COMP3770, Semester 1, 2021.
 ## Contents
 
 This repo contains the experimental setup used to generate the empirical results in my report, "User Tampering in
-Reinforcement Learning Media Recommender Systems":
+Reinforcement Learning Media Recommender Systems,"  which demonstrates a Q-learning algorithm learning to 
+tamper with user's content preferences on a media platform. The repo's contents are as follows:
 
- - `media_rec_env.py` defines the Media Recommendation Environment, and visualises experimental results.
- - `q_learning.py` implements the learning agent, and provides the main script for training/testing the recommender.
- - `user.py` and `users.py` define the simulated media users that we use for our experiments.
+ - `q_learning.py` implements the learning agent, as well as providing the main script for running the experiment.
+     - Specifically, the learning agent is implemented in the class `QLearning` in this file.
+ - `media_rec_env.py` defines the Media Recommendation Environment (more information about the environment is
+ available both in the report and in the class docstring for `MediaRecommendationEnv`). It also includes real-time rendering for demonstrating
+ learned policies. 
+ - `user.py` defines the the basic `MediaUser` object used in our experiments.
+ - `users.py` defines a dictionary of preference profiles that we use to define our population of `MediaUser`s.
  
 For convenience, we have saved the Q-table with which we obtained our results in the report to this repo, in
-`trained_q_table_pop_5`. It is not human-readable, however running the following command from the repo's root dir.
-will load the trained table and then use it to define the agent's policy in 10 visualised demo. runs through our environment:
+`trained_q_table_pop_5`. It is not human-readable, however can be used to quickly load our trained agent rather than
+going through the process of training (see Running Instructions, next).
 
-`python3 q_learning.py --load "trained_q_table_pop_5"`
+## Running Instructions
 
-If you would like to train the Q-table yourself, instead run the command:
+The implementation has been done in Python 3, and no compatibility is guaranteed with Python 2.
 
-`python3 q_learning.py`
+As a precursor, the following python packages may need to be installed (if they are not already):
+- gym
+- matplotlib
+- numpy
 
-However, be aware that this training process takes approximately 4 hours on our machine (16GiB RAM, 2.6 GHz 2019 i7).
+The implemented functionality can then be run with the following command, from the root of the repository:
 
-If you would like to train the algorithm and save its Q-table to some file in the repo (for subsequent loading with the 
-first command above, run):
+`python3 q_learning.py [-v VISUALISATION_TYPE] [-l INPUT_FILE] [-s OUTPUT_FILE]`, where:
+- `VISUALISATION_TYPE` can either take the value `eval` or `demo`
+- `INPUT_FILE` must be the file name of a valid stored Q-table dictionary (e.g. `"trained_q_table_pop_5"`)
+- `OUTPUT_FILE` can be any file name to which you'd like to save a newly learned Q-table
 
-`python3 q_learning.py --save "<file_name>"`
+So, to recreate our experiments, run:
+- `python3 q_learning.py -v eval -l trained_q_table_pop_5` to reproduce the plots included in the paper (each 
+plot should take ~ 10 seconds to generate), and
+- `python3 q_learning.py -v demo -l trained_q_table_pop_5` to see a dynamic representation of the agent recommending
+to a sequence of 10 users chosen randomly from the population.
 
-## Result Visualisation
+Both these commands will load the pre-trained recommender that we have saved in the repo. if you'd like to run the training yourself
+(Disclaimer: be aware that this training process takes approximately 4 hours on our machine i.e 16GiB RAM, 2.6 GHz 2019 i7),
+simply drop the `-l trained_q_table_pop_5` from the above commands.
 
-Post-training/Post-loading, the `q_learning` script will automatically run and visualise 10 demo. runs, with randomly 
+It is recommended that if you wish to train a new recommender, you save the trained Q-table so that it can quickly be loaded
+again for evaluation. to do this, add a flag like `-o file_name` to save the q_table to `file_name` in the repo.
+
+## Interpreting the 'Demo' Visualisation
+
+If `q_learning.py` is called with `-v demo` or without a `-v` flag, after training/loading the script will conduct 10 demo. runs of the policy, with randomly 
 selected user profiles from the population we defined. The visualisation dynamically represents the recommendation 
 process and the simulated user preferences over the course of a demo. episode. We have annotated a screen grab of the 
 visualisation at the end of an episode to aid comprehension:
