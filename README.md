@@ -54,7 +54,7 @@ Both these commands will load the pre-trained recommender that we have saved in 
 simply drop the `-l trained_q_table_pop_5` from the above commands.
 
 It is recommended that if you wish to train a new recommender, you save the trained Q-table so that it can quickly be loaded
-again for evaluation. to do this, add a flag like `-o file_name` to save the q_table to `file_name` in the repo.
+again for evaluation. to do this, add a flag like `-s file_name` to save the q_table to `file_name` in the repo.
 
 ## Interpreting the 'Demo' Visualisation
 
