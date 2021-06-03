@@ -40,7 +40,7 @@ The implemented functionality can then be run with the following command, from t
 
 `python3 q_learning.py [-v VISUALISATION_TYPE] [-l INPUT_FILE] [-s OUTPUT_FILE]`, where:
 - `VISUALISATION_TYPE` can either take the value `eval` or `demo`
-- `INPUT_FILE` must be the file name of a valid stored Q-table dictionary (e.g. `"trained_q_table_pop_5"`)
+- `INPUT_FILE` must be the file name of a valid stored Q-table dictionary (e.g. `trained_q_table_pop_5`)
 - `OUTPUT_FILE` can be any file name to which you'd like to save a newly learned Q-table
 
 So, to recreate our experiments, run:
