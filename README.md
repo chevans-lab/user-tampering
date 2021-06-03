@@ -65,7 +65,7 @@ visualisation at the end of an episode to aid comprehension:
 
 ## 
 
-For more information on the experimental context, please see the associated report.
+For more information on the experimental context and setup, please see the associated report and the individual files' docstrings.
 
 
 
