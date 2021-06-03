@@ -44,14 +44,12 @@ The implemented functionality can then be run with the following command, from t
 - `OUTPUT_FILE` can be any file name to which you'd like to save a newly learned Q-table
 
 So, to recreate our experiments, run:
-- `python3 q_learning.py -v eval -l trained_q_table_pop_5` to reproduce the plots included in the paper (each 
-plot should take ~ 10 seconds to generate), and
+- `python3 q_learning.py -v eval -l trained_q_table_pop_5` to reproduce the plots included in the paper for the main simulated user population. Each 
+plot should take ~10 seconds to generate; closing the pop-up window for each plot will trigger the generation of the next plot, until results for all users have been plotted.
 - `python3 q_learning.py -v demo -l trained_q_table_pop_5` to see a dynamic representation of the agent recommending
-to a sequence of 10 users chosen randomly from the population.
+to a sequence of 10 users chosen randomly from the population. The interpretation of this representation is explained below.
 
-Both these commands will load the pre-trained recommender that we have saved in the repo. if you'd like to run the training yourself
-(Disclaimer: be aware that this training process takes approximately 4 hours on our machine i.e 16GiB RAM, 2.6 GHz 2019 i7),
-simply drop the `-l trained_q_table_pop_5` from the above commands.
+Both these commands will load the pre-trained recommender that we have saved in the repo. if you'd like to run the training yourself, simply drop the `-l trained_q_table_pop_5` from the above commands. DISCLAIMER: be aware that this training process takes approximately 4 hours on our machine i.e 16GiB RAM, 2.6 GHz 2019 i7.
 
 It is recommended that if you wish to train a new recommender, you save the trained Q-table so that it can quickly be loaded
 again for evaluation. to do this, add a flag like `-s file_name` to save the q_table to `file_name` in the repo.
