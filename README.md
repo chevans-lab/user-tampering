@@ -52,7 +52,7 @@ to a sequence of 10 users chosen randomly from the population. The interpretatio
 Both these commands will load the pre-trained recommender that we have saved in the repo. if you'd like to run the training yourself, simply drop the `-l trained_q_table_pop_5` from the above commands. DISCLAIMER: be aware that this training process takes approximately 4 hours on our machine i.e 16GiB RAM, 2.6 GHz 2019 i7.
 
 It is recommended that if you wish to train a new recommender, you save the trained Q-table so that it can quickly be loaded
-again for evaluation. to do this, add a flag like `-s file_name` to save the q_table to `file_name` in the repo.
+again for evaluation. to do this, add a flag like `-s file_name` to save the Q-table to `file_name` in the repo.
 
 ## Interpreting the 'Demo' Visualisation
 
