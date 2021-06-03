@@ -19,7 +19,7 @@ class Users:
 
     We also have:
     -- A centrist user (likely to click on centrist content,
-        but not particularly likely to engage otherwise.
+        but not particularly likely to engage otherwise).
     """
 
     def __init__(self):
@@ -31,8 +31,9 @@ class Users:
         self.users["Strong Left"] = np.array([0.4, 0.1, 0.1])
         self.users["Centrist"] = np.array([0.2, 0.4, 0.2])
 
-        # BELOW: Additional users which are not used in training, but can be uncommented for evaluation to
-        # verify that the learned policy is robust to preference profiles which were not encountered in training.
+        # BELOW: Additional users which were not used in training our model,
+        # but can be uncommented at evaluation stage to verify that the learned policy is robust to preference profiles
+        # which were not encountered in training.
 
         #self.users["Extremely Right"] = np.array([0.05, 0.05, 0.5])
         #self.users["Right anti-centrist "] = np.array([0.2, 0.05, 0.35])

@@ -10,7 +10,8 @@ from gym.envs.classic_control import rendering
 Author: Charles Evans
 Email: u6942700@anu.edu.au
 
-This is my own work, and forms part of my artefact contribution for COMP3770, Semester 1, 2021.
+This class is my own work; however, the gym.Env class from which it inherits is not mine and is attributed to OpenAI.
+This forms part of my artefact contribution for COMP3770, Semester 1, 2021.
 """
 
 class MediaRecommendationEnv(gym.Env):

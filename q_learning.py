@@ -353,6 +353,9 @@ def main():
     input_q_file = args.input_q_file
     output_q_file = args.output_q_file
     vis_type = args.visualisation_type
+    training_episodes = 50000000
+    evaluation_episodes = 10000
+    demonstration_episodes = 10
 
     # Generating Q-learning agent instance
     q_learning = QLearning(input_q_file, output_q_file)
@@ -365,7 +368,7 @@ def main():
     # Else, the agent begins training
     else:
         print("Commencing training...")
-        q_learning.train(episodes=50000000)
+        q_learning.train(episodes=training_episodes)
 
     # Saving the Q-table to given location, if one was given
     if output_q_file:
@@ -376,10 +379,10 @@ def main():
 
     if vis_type is None or vis_type == 'demo':
         # Running demonstration of policy
-        q_learning.execute_demonstration(10)
+        q_learning.execute_demonstration(trials=demonstration_episodes)
     elif vis_type == 'eval':
         # Running evaluation of policy
-        q_learning.execute_evaluation(10000)
+        q_learning.execute_evaluation(runs_per_user=evaluation_episodes)
 
 if __name__ == "__main__":
     main()
